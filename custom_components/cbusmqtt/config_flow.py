@@ -6,7 +6,6 @@ import asyncio
 import logging
 from typing import Any
 
-import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
@@ -141,12 +140,10 @@ async def validate_cbus_connection(
         raise CannotConnect(f"Cannot connect to C-Bus: {exc}") from exc
 
 
-@config_entries.HANDLERS.register(DOMAIN)
-class CBusMQTTConfigFlow(config_entries.ConfigFlow):
+class CBusMQTTConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for C-Bus MQTT Bridge."""
 
     VERSION = 1
-    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
 
     def __init__(self) -> None:
         """Initialize the config flow."""
