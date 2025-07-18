@@ -25,8 +25,8 @@ from .const import (
     MQTT_TOPIC_LIGHT_STATE,
 )
 
-# Add import for DeviceType
-from devices.manager import DeviceType
+# Import from local device manager
+from .device_manager import SimpleDeviceManager, DeviceType
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -39,41 +39,20 @@ async def async_setup_entry(
     """Set up C-Bus lights from a config entry."""
     config = hass.data[DOMAIN][entry.entry_id]
 
-    # Initialize device manager and discover devices
-    from devices.manager import DeviceManager
-    from config.config import Config
-    
-    # Create config from entry data
-    config_data = {
-        'cbus': {
-            'interface': 'tcp',
-            'host': config[CONF_HOST],
-            'port': config[CONF_PORT],
-            'network': 254,
-            'application': 56,
-            'monitoring': {
-                'enabled': True,
-                'timeout': 5
-            }
-        }
-    }
-    
-    app_config = Config(config_data)
-    device_manager = DeviceManager(app_config)
+    # Create simple device manager
+    device_manager = SimpleDeviceManager(config)
     
     try:
-        # Initialize device manager and perform discovery
-        await device_manager.initialize()
+        # For now, create sample devices
+        # TODO: Implement real device discovery
+        devices = device_manager.create_sample_devices()
         
-        # Get discovered light devices
-        discovered_lights = device_manager.get_devices_by_type(DeviceType.LIGHT)
-        
-        if discovered_lights:
-            _LOGGER.info(f"Discovered {len(discovered_lights)} light devices from C-Bus system")
+        if devices:
+            _LOGGER.info(f"Creating {len(devices)} light entities")
             
-            # Create light entities from discovered devices
+            # Create light entities from devices
             lights = []
-            for device in discovered_lights:
+            for device in devices:
                 light = CBusLight(
                     config,
                     light_id=str(device.group),
@@ -87,40 +66,13 @@ async def async_setup_entry(
                 
             async_add_entities(lights)
         else:
-            _LOGGER.warning("No light devices discovered from C-Bus system")
-            
-            # Fall back to creating sample lights for testing
-            _LOGGER.info("Creating sample lights for testing")
-            lights = [
-                CBusLight(
-                    config,
-                    light_id="1",
-                    name="Living Room",
-                    group_address=1,
-                    device_manager=device_manager
-                ),
-                CBusLight(
-                    config,
-                    light_id="2",
-                    name="Kitchen",
-                    group_address=2,
-                    device_manager=device_manager
-                ),
-                CBusLight(
-                    config,
-                    light_id="3",
-                    name="Bedroom",
-                    group_address=3,
-                    device_manager=device_manager
-                ),
-            ]
-            async_add_entities(lights)
+            _LOGGER.warning("No light devices created")
             
     except Exception as e:
-        _LOGGER.error(f"Error during device discovery: {e}")
+        _LOGGER.error(f"Error during light setup: {e}")
         
-        # Fall back to basic lights if discovery fails
-        _LOGGER.info("Discovery failed, creating basic sample lights")
+        # Fall back to basic lights if setup fails
+        _LOGGER.info("Creating basic fallback lights")
         lights = [
             CBusLight(
                 config,
