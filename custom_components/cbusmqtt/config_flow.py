@@ -15,13 +15,28 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 
-from .const import (CONF_APPLICATION, CONF_INTERFACE_TYPE, CONF_MAX_RETRIES,
-                    CONF_MONITORING_ENABLED, CONF_NETWORK, CONF_POLL_INTERVAL,
-                    CONF_SERIAL_PORT, CONF_TIMEOUT, DEFAULT_APPLICATION,
-                    DEFAULT_MAX_RETRIES, DEFAULT_NAME, DEFAULT_NETWORK,
-                    DEFAULT_POLL_INTERVAL, DEFAULT_PORT, DEFAULT_TIMEOUT,
-                    DOMAIN, INTERFACE_PCI, INTERFACE_SERIAL, INTERFACE_TCP,
-                    INTERFACE_TYPES)
+from .const import (
+    CONF_APPLICATION,
+    CONF_INTERFACE_TYPE,
+    CONF_MAX_RETRIES,
+    CONF_MONITORING_ENABLED,
+    CONF_NETWORK,
+    CONF_POLL_INTERVAL,
+    CONF_SERIAL_PORT,
+    CONF_TIMEOUT,
+    DEFAULT_APPLICATION,
+    DEFAULT_MAX_RETRIES,
+    DEFAULT_NAME,
+    DEFAULT_NETWORK,
+    DEFAULT_POLL_INTERVAL,
+    DEFAULT_PORT,
+    DEFAULT_TIMEOUT,
+    DOMAIN,
+    INTERFACE_PCI,
+    INTERFACE_SERIAL,
+    INTERFACE_TCP,
+    INTERFACE_TYPES,
+)
 
 _LOGGER = logging.getLogger(__name__)
 

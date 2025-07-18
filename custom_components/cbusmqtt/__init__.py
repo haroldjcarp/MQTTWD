@@ -15,10 +15,20 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 
 from .cbus.coordinator import CBusCoordinator
-from .const import (CONF_APPLICATION, CONF_INTERFACE_TYPE, CONF_MAX_RETRIES,
-                    CONF_MONITORING_ENABLED, CONF_NETWORK, CONF_POLL_INTERVAL,
-                    CONF_SERIAL_PORT, CONF_TIMEOUT, DEVICE_MANUFACTURER,
-                    DEVICE_MODEL, DOMAIN, SUPPORTED_DEVICE_TYPES)
+from .const import (
+    CONF_APPLICATION,
+    CONF_INTERFACE_TYPE,
+    CONF_MAX_RETRIES,
+    CONF_MONITORING_ENABLED,
+    CONF_NETWORK,
+    CONF_POLL_INTERVAL,
+    CONF_SERIAL_PORT,
+    CONF_TIMEOUT,
+    DEVICE_MANUFACTURER,
+    DEVICE_MODEL,
+    DOMAIN,
+    SUPPORTED_DEVICE_TYPES,
+)
 
 _LOGGER = logging.getLogger(__name__)
 

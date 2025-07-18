@@ -5,9 +5,13 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from homeassistant.components.light import (ATTR_BRIGHTNESS, ATTR_TRANSITION,
-                                            ColorMode, LightEntity,
-                                            LightEntityFeature)
+from homeassistant.components.light import (
+    ATTR_BRIGHTNESS,
+    ATTR_TRANSITION,
+    ColorMode,
+    LightEntity,
+    LightEntityFeature,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback

@@ -8,15 +8,27 @@ from typing import Any, Dict, Optional
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import (DataUpdateCoordinator,
-                                                      UpdateFailed)
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from ..const import (CONF_APPLICATION, CONF_HOST, CONF_INTERFACE_TYPE,
-                     CONF_MAX_RETRIES, CONF_MONITORING_ENABLED, CONF_NETWORK,
-                     CONF_POLL_INTERVAL, CONF_PORT, CONF_SERIAL_PORT,
-                     CONF_TIMEOUT, DOMAIN, EVENT_CBUS_DEVICE_DISCOVERED,
-                     EVENT_CBUS_STATE_CHANGED, INTERFACE_PCI, INTERFACE_SERIAL,
-                     INTERFACE_TCP, UPDATE_INTERVAL)
+from ..const import (
+    CONF_APPLICATION,
+    CONF_HOST,
+    CONF_INTERFACE_TYPE,
+    CONF_MAX_RETRIES,
+    CONF_MONITORING_ENABLED,
+    CONF_NETWORK,
+    CONF_POLL_INTERVAL,
+    CONF_PORT,
+    CONF_SERIAL_PORT,
+    CONF_TIMEOUT,
+    DOMAIN,
+    EVENT_CBUS_DEVICE_DISCOVERED,
+    EVENT_CBUS_STATE_CHANGED,
+    INTERFACE_PCI,
+    INTERFACE_SERIAL,
+    INTERFACE_TCP,
+    UPDATE_INTERVAL,
+)
 from .interface import CBusInterface
 
 _LOGGER = logging.getLogger(__name__)
