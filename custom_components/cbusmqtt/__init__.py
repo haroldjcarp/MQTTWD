@@ -1,33 +1,24 @@
 """The C-Bus MQTT Bridge integration."""
+
 from __future__ import annotations
 
 import asyncio
 import logging
 from typing import Any
 
+import homeassistant.helpers.config_validation as cv
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
-import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 
-from .const import (
-    CONF_APPLICATION,
-    CONF_INTERFACE_TYPE,
-    CONF_MAX_RETRIES,
-    CONF_MONITORING_ENABLED,
-    CONF_NETWORK,
-    CONF_POLL_INTERVAL,
-    CONF_SERIAL_PORT,
-    CONF_TIMEOUT,
-    DEVICE_MANUFACTURER,
-    DEVICE_MODEL,
-    DOMAIN,
-    SUPPORTED_DEVICE_TYPES,
-)
 from .cbus.coordinator import CBusCoordinator
+from .const import (CONF_APPLICATION, CONF_INTERFACE_TYPE, CONF_MAX_RETRIES,
+                    CONF_MONITORING_ENABLED, CONF_NETWORK, CONF_POLL_INTERVAL,
+                    CONF_SERIAL_PORT, CONF_TIMEOUT, DEVICE_MANUFACTURER,
+                    DEVICE_MODEL, DOMAIN, SUPPORTED_DEVICE_TYPES)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,7 +31,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Create coordinator
     coordinator = CBusCoordinator(hass, entry)
-    
+
     try:
         await coordinator.async_setup()
     except Exception as ex:
@@ -61,7 +52,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    
+
     if unload_ok:
         coordinator = hass.data[DOMAIN].pop(entry.entry_id)
         await coordinator.async_shutdown()
@@ -69,9 +60,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unload_ok
 
 
-async def _async_register_services(hass: HomeAssistant, coordinator: CBusCoordinator) -> None:
+async def _async_register_services(
+    hass: HomeAssistant, coordinator: CBusCoordinator
+) -> None:
     """Register integration services."""
-    
+
     async def async_sync_device(call) -> None:
         """Sync a specific device."""
         group = call.data.get("group")
@@ -118,7 +111,9 @@ class CBusEntity(Entity):
     def device_info(self) -> DeviceInfo:
         """Return device info."""
         return DeviceInfo(
-            identifiers={(DOMAIN, f"{self.coordinator.config_entry.entry_id}_{self.group}")},
+            identifiers={
+                (DOMAIN, f"{self.coordinator.config_entry.entry_id}_{self.group}")
+            },
             name=f"C-Bus Group {self.group}",
             manufacturer=DEVICE_MANUFACTURER,
             model=DEVICE_MODEL,
@@ -138,4 +133,4 @@ class CBusEntity(Entity):
 
     async def async_will_remove_from_hass(self) -> None:
         """When entity will be removed from hass."""
-        pass 
+        pass

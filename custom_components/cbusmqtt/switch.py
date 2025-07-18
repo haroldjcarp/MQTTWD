@@ -1,4 +1,5 @@
 """Platform for C-Bus switches."""
+
 from __future__ import annotations
 
 import logging
@@ -10,8 +11,8 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import CBusEntity
-from .const import DOMAIN
 from .cbus.coordinator import CBusCoordinator
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,16 +24,16 @@ async def async_setup_entry(
 ) -> None:
     """Set up C-Bus switch from a config entry."""
     coordinator: CBusCoordinator = hass.data[DOMAIN][config_entry.entry_id]
-    
+
     # Add initially discovered switches
     entities = []
     for group, device_info in coordinator.get_discovered_devices().items():
         if device_info.get("type") == "switch":
             entities.append(CBusSwitch(coordinator, group, device_info))
-    
+
     if entities:
         async_add_entities(entities)
-    
+
     # Listen for new device discoveries
     @callback
     def _handle_device_discovered(event):
@@ -42,7 +43,7 @@ async def async_setup_entry(
             device_info = coordinator.get_discovered_devices().get(group)
             if device_info:
                 async_add_entities([CBusSwitch(coordinator, group, device_info)])
-    
+
     # Register event listener
     hass.bus.async_listen("cbus_device_discovered", _handle_device_discovered)
 
@@ -93,9 +94,9 @@ class CBusSwitch(CBusEntity, SwitchEntity):
         state = self.coordinator.get_device_state(self.group)
         if not state:
             return {}
-        
+
         return {
             "group": self.group,
             "last_updated": state.get("last_updated"),
             "discovered": self.device_info_data.get("discovered", False),
-        } 
+        }

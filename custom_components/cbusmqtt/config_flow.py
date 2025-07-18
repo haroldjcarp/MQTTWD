@@ -1,103 +1,121 @@
 """Config flow for C-Bus MQTT Bridge integration."""
+
 from __future__ import annotations
 
 import logging
 from typing import Any
 
+import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
-import homeassistant.helpers.config_validation as cv
 
-from .const import (
-    CONF_APPLICATION,
-    CONF_INTERFACE_TYPE,
-    CONF_MAX_RETRIES,
-    CONF_MONITORING_ENABLED,
-    CONF_NETWORK,
-    CONF_POLL_INTERVAL,
-    CONF_SERIAL_PORT,
-    CONF_TIMEOUT,
-    DEFAULT_APPLICATION,
-    DEFAULT_MAX_RETRIES,
-    DEFAULT_NAME,
-    DEFAULT_NETWORK,
-    DEFAULT_POLL_INTERVAL,
-    DEFAULT_PORT,
-    DEFAULT_TIMEOUT,
-    DOMAIN,
-    INTERFACE_PCI,
-    INTERFACE_SERIAL,
-    INTERFACE_TCP,
-    INTERFACE_TYPES,
-)
+from .const import (CONF_APPLICATION, CONF_INTERFACE_TYPE, CONF_MAX_RETRIES,
+                    CONF_MONITORING_ENABLED, CONF_NETWORK, CONF_POLL_INTERVAL,
+                    CONF_SERIAL_PORT, CONF_TIMEOUT, DEFAULT_APPLICATION,
+                    DEFAULT_MAX_RETRIES, DEFAULT_NAME, DEFAULT_NETWORK,
+                    DEFAULT_POLL_INTERVAL, DEFAULT_PORT, DEFAULT_TIMEOUT,
+                    DOMAIN, INTERFACE_PCI, INTERFACE_SERIAL, INTERFACE_TCP,
+                    INTERFACE_TYPES)
 
 _LOGGER = logging.getLogger(__name__)
 
 # Base schema for interface selection
-INTERFACE_SCHEMA = vol.Schema({
-    vol.Required(CONF_INTERFACE_TYPE, default=INTERFACE_TCP): vol.In(INTERFACE_TYPES),
-    vol.Required(CONF_NAME, default=DEFAULT_NAME): str,
-})
+INTERFACE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_INTERFACE_TYPE, default=INTERFACE_TCP): vol.In(
+            INTERFACE_TYPES
+        ),
+        vol.Required(CONF_NAME, default=DEFAULT_NAME): str,
+    }
+)
 
 # TCP interface schema
-TCP_SCHEMA = vol.Schema({
-    vol.Required(CONF_HOST): str,
-    vol.Required(CONF_PORT, default=DEFAULT_PORT): cv.port,
-    vol.Required(CONF_NETWORK, default=DEFAULT_NETWORK): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
-    vol.Required(CONF_APPLICATION, default=DEFAULT_APPLICATION): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
-})
+TCP_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_HOST): str,
+        vol.Required(CONF_PORT, default=DEFAULT_PORT): cv.port,
+        vol.Required(CONF_NETWORK, default=DEFAULT_NETWORK): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=255)
+        ),
+        vol.Required(CONF_APPLICATION, default=DEFAULT_APPLICATION): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=255)
+        ),
+    }
+)
 
 # Serial interface schema
-SERIAL_SCHEMA = vol.Schema({
-    vol.Required(CONF_SERIAL_PORT, default="/dev/ttyUSB0"): str,
-    vol.Required(CONF_NETWORK, default=DEFAULT_NETWORK): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
-    vol.Required(CONF_APPLICATION, default=DEFAULT_APPLICATION): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
-})
+SERIAL_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_SERIAL_PORT, default="/dev/ttyUSB0"): str,
+        vol.Required(CONF_NETWORK, default=DEFAULT_NETWORK): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=255)
+        ),
+        vol.Required(CONF_APPLICATION, default=DEFAULT_APPLICATION): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=255)
+        ),
+    }
+)
 
 # PCI interface schema
-PCI_SCHEMA = vol.Schema({
-    vol.Required(CONF_SERIAL_PORT, default="/dev/ttyUSB0"): str,
-    vol.Required(CONF_NETWORK, default=DEFAULT_NETWORK): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
-    vol.Required(CONF_APPLICATION, default=DEFAULT_APPLICATION): vol.All(vol.Coerce(int), vol.Range(min=0, max=255)),
-})
+PCI_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_SERIAL_PORT, default="/dev/ttyUSB0"): str,
+        vol.Required(CONF_NETWORK, default=DEFAULT_NETWORK): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=255)
+        ),
+        vol.Required(CONF_APPLICATION, default=DEFAULT_APPLICATION): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=255)
+        ),
+    }
+)
 
 # Advanced options schema
-ADVANCED_SCHEMA = vol.Schema({
-    vol.Required(CONF_MONITORING_ENABLED, default=True): bool,
-    vol.Required(CONF_POLL_INTERVAL, default=DEFAULT_POLL_INTERVAL): vol.All(vol.Coerce(int), vol.Range(min=5, max=300)),
-    vol.Required(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): vol.All(vol.Coerce(int), vol.Range(min=1, max=30)),
-    vol.Required(CONF_MAX_RETRIES, default=DEFAULT_MAX_RETRIES): vol.All(vol.Coerce(int), vol.Range(min=1, max=10)),
-})
+ADVANCED_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_MONITORING_ENABLED, default=True): bool,
+        vol.Required(CONF_POLL_INTERVAL, default=DEFAULT_POLL_INTERVAL): vol.All(
+            vol.Coerce(int), vol.Range(min=5, max=300)
+        ),
+        vol.Required(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): vol.All(
+            vol.Coerce(int), vol.Range(min=1, max=30)
+        ),
+        vol.Required(CONF_MAX_RETRIES, default=DEFAULT_MAX_RETRIES): vol.All(
+            vol.Coerce(int), vol.Range(min=1, max=10)
+        ),
+    }
+)
 
 
-async def validate_cbus_connection(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
+async def validate_cbus_connection(
+    hass: HomeAssistant, data: dict[str, Any]
+) -> dict[str, Any]:
     """Validate the C-Bus connection."""
     try:
         # Import here to avoid circular imports
         from .cbus.interface import CBusInterface
-        
+
         # Create a temporary interface to test connection
         interface = CBusInterface(data)
-        
+
         # Try to initialize and connect
         await interface.initialize()
         await interface.connect()
-        
+
         # Test basic communication
         result = await interface.ping()
-        
+
         # Clean up
         await interface.disconnect()
-        
+
         if not result:
             raise CannotConnect("Failed to ping C-Bus interface")
-            
+
         return {"title": data[CONF_NAME]}
-        
+
     except Exception as exc:
         _LOGGER.error("Error validating C-Bus connection: %s", exc)
         raise CannotConnect(f"Cannot connect to C-Bus: {exc}") from exc
@@ -284,26 +302,27 @@ class CBusMQTTOptionsFlow(config_entries.OptionsFlow):
 
         # Get current options
         options = self.config_entry.options
-        
+
         # Create schema with current values
-        options_schema = vol.Schema({
-            vol.Required(
-                CONF_MONITORING_ENABLED,
-                default=options.get(CONF_MONITORING_ENABLED, True)
-            ): bool,
-            vol.Required(
-                CONF_POLL_INTERVAL,
-                default=options.get(CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL)
-            ): vol.All(vol.Coerce(int), vol.Range(min=5, max=300)),
-            vol.Required(
-                CONF_TIMEOUT,
-                default=options.get(CONF_TIMEOUT, DEFAULT_TIMEOUT)
-            ): vol.All(vol.Coerce(int), vol.Range(min=1, max=30)),
-            vol.Required(
-                CONF_MAX_RETRIES,
-                default=options.get(CONF_MAX_RETRIES, DEFAULT_MAX_RETRIES)
-            ): vol.All(vol.Coerce(int), vol.Range(min=1, max=10)),
-        })
+        options_schema = vol.Schema(
+            {
+                vol.Required(
+                    CONF_MONITORING_ENABLED,
+                    default=options.get(CONF_MONITORING_ENABLED, True),
+                ): bool,
+                vol.Required(
+                    CONF_POLL_INTERVAL,
+                    default=options.get(CONF_POLL_INTERVAL, DEFAULT_POLL_INTERVAL),
+                ): vol.All(vol.Coerce(int), vol.Range(min=5, max=300)),
+                vol.Required(
+                    CONF_TIMEOUT, default=options.get(CONF_TIMEOUT, DEFAULT_TIMEOUT)
+                ): vol.All(vol.Coerce(int), vol.Range(min=1, max=30)),
+                vol.Required(
+                    CONF_MAX_RETRIES,
+                    default=options.get(CONF_MAX_RETRIES, DEFAULT_MAX_RETRIES),
+                ): vol.All(vol.Coerce(int), vol.Range(min=1, max=10)),
+            }
+        )
 
         return self.async_show_form(
             step_id="init",
@@ -316,4 +335,4 @@ class CannotConnect(HomeAssistantError):
 
 
 class InvalidAuth(HomeAssistantError):
-    """Error to indicate there is invalid auth.""" 
+    """Error to indicate there is invalid auth."""

@@ -70,4 +70,4 @@ DEVICE_MODEL = "C-Bus Device"
 
 # Update intervals
 UPDATE_INTERVAL = 10  # seconds
-FAST_UPDATE_INTERVAL = 1  # seconds for recently changed devices 
+FAST_UPDATE_INTERVAL = 1  # seconds for recently changed devices

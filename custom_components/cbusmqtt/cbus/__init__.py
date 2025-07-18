@@ -1,1 +1,1 @@
-"""C-Bus interface package.""" 
+"""C-Bus interface package."""
