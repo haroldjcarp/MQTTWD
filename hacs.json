@@ -1,7 +1,7 @@
 {
-  "name": "C-Bus MQTT Bridge",
+  "name": "C-Bus Lights",
   "content_in_root": false,
-  "filename": "cbusmqtt",
+  "filename": "cbus_lights",
   "country": ["AU", "NZ", "SG", "MY", "TH", "VN", "ID", "PH"],
   "homeassistant": "2023.1.0",
   "render_readme": true

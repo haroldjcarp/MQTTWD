@@ -1,258 +1,69 @@
-# CBus MQTT Bridge - Improved Version
+# C-Bus Lights Integration for Home Assistant
 
-An improved C-Bus to MQTT bridge for Home Assistant with better state tracking and bidirectional synchronization.
+A Home Assistant custom integration for controlling Clipsal C-Bus lights via MQTT.
 
 ## Features
 
-- ✅ **Accurate State Tracking**: Actively monitors C-Bus devices for real-time state updates
-- ✅ **Bidirectional Sync**: Full two-way communication between C-Bus and Home Assistant
-- ✅ **Auto-Discovery**: Automatic device discovery in Home Assistant via MQTT
-- ✅ **Multiple Interface Support**: Works with PCI, CNI, and serial interfaces
-- ✅ **Robust Error Handling**: Comprehensive error handling and recovery
-- ✅ **Easy Configuration**: Simple YAML configuration
-- ✅ **Docker Support**: Ready-to-use Docker container and Home Assistant add-on
-- ✅ **Comprehensive Logging**: Detailed logging for troubleshooting
-
-## Key Improvements Over Existing Solutions
-
-### 1. State Accuracy
-- **Real-time monitoring** of C-Bus device states
-- **Polling fallback** when event monitoring fails
-- **State validation** to ensure consistency
-- **Conflict resolution** for state mismatches
-
-### 2. Better Communication
-- **Asynchronous processing** for better performance
-- **Message queuing** to handle high-frequency updates
-- **Connection resilience** with automatic reconnection
-- **Heartbeat monitoring** for connection health
-
-### 3. Enhanced Configuration
-- **Device templates** for common C-Bus devices
-- **Automatic device mapping** from C-Bus project files
-- **Flexible addressing** (group addresses, device names)
-- **Custom device properties** (icons, areas, etc.)
-
-## Quick Start
-
-### Using Docker
-
-```bash
-# Create configuration directory
-mkdir -p ./config
-
-# Create basic configuration
-cat > ./config/config.yaml << EOF
-cbus:
-  interface: tcp
-  host: 192.168.1.100
-  port: 10001
-  
-mqtt:
-  broker: localhost
-  port: 1883
-  username: homeassistant
-  password: your_password
-  
-discovery:
-  enabled: true
-  prefix: homeassistant
-EOF
-
-# Run container
-docker run -d \
-  --name cbusmqtt \
-  -v ./config:/config \
-  --network host \
-  cbusmqtt:latest
-```
-
-### Using Python
-
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Run the bridge
-python main.py --config config/config.yaml
-```
-
-## Configuration
-
-### Basic Configuration
-
-```yaml
-# config/config.yaml
-cbus:
-  interface: tcp          # tcp, serial, or pci
-  host: 192.168.1.100    # For TCP/CNI interfaces
-  port: 10001            # Default CNI port
-  # serial_port: /dev/ttyUSB0  # For serial interfaces
-  
-  # Network configuration
-  network: 254           # C-Bus network number
-  application: 56        # Lighting application (56 = 0x38)
-  
-  # State monitoring
-  monitoring:
-    enabled: true
-    poll_interval: 30    # Poll devices every 30 seconds
-    max_retries: 3
-    timeout: 5
-    
-mqtt:
-  broker: localhost
-  port: 1883
-  username: homeassistant
-  password: your_password
-  
-  # MQTT topics
-  topics:
-    command: cbus/command
-    state: cbus/state
-    
-  # Connection settings
-  keepalive: 60
-  reconnect_delay: 5
-  
-discovery:
-  enabled: true
-  prefix: homeassistant
-  
-logging:
-  level: INFO
-  file: /var/log/cbusmqtt.log
-```
-
-### Device Configuration
-
-```yaml
-# config/devices.yaml
-devices:
-  # Group address based configuration
-  - group: 1
-    name: "Living Room Main Light"
-    type: light
-    area: "Living Room"
-    icon: "mdi:lightbulb"
-    
-  - group: 2
-    name: "Kitchen Downlights"
-    type: light
-    area: "Kitchen"
-    dimmable: true
-    
-  - group: 10
-    name: "Bathroom Exhaust Fan"
-    type: fan
-    area: "Bathroom"
-    
-  # Device templates for common setups
-  templates:
-    - name: "dimmable_light"
-      type: light
-      dimmable: true
-      fade_time: 2
-      
-    - name: "switch"
-      type: switch
-      dimmable: false
-```
-
-## Architecture
-
-### Core Components
-
-1. **CBus Interface** (`cbus/interface.py`)
-   - Handles communication with C-Bus PCI/CNI
-   - Manages connection states and error recovery
-   - Provides abstraction for different interface types
-
-2. **State Manager** (`cbus/state_manager.py`)
-   - Tracks device states in real-time
-   - Handles state validation and conflict resolution
-   - Manages polling and event-based updates
-
-3. **MQTT Bridge** (`mqtt/bridge.py`)
-   - Manages MQTT communication
-   - Handles Home Assistant discovery
-   - Processes commands and publishes states
-
-4. **Device Manager** (`devices/manager.py`)
-   - Manages device configurations
-   - Handles device discovery and mapping
-   - Provides device-specific behavior
-
-### State Synchronization Flow
-
-```
-C-Bus Device → C-Bus Interface → State Manager → MQTT Bridge → Home Assistant
-     ↑                                                              ↓
-     ←─────────── Command Processing ←─────────────────────────────
-```
-
-## Supported Devices
-
-- **Lights**: Dimmable and non-dimmable lighting
-- **Fans**: Ceiling fans and exhaust fans
-- **Switches**: General purpose switching
-- **Sensors**: Motion, temperature, and other sensors
-- **Blinds**: Motorized blinds and curtains
+- **Light Control**: Turn lights on/off and control brightness
+- **MQTT Integration**: Communicates with C-Bus system via MQTT
+- **Button Press Handling**: Returns light state when physical buttons are pressed
+- **Real-time State Updates**: Lights reflect current state in Home Assistant
 
 ## Installation
 
-### Home Assistant Add-on
+### Via HACS (Recommended)
 
-1. Add the repository to your Home Assistant add-on store
-2. Install the "CBus MQTT Bridge" add-on
-3. Configure the add-on with your C-Bus settings
-4. Start the add-on
+1. Open HACS in Home Assistant
+2. Go to "Integrations" 
+3. Click the three dots menu → "Custom repositories"
+4. Add repository URL: `https://github.com/haroldjcarp/MQTTWD`
+5. Select "Integration" category
+6. Click "Install"
+7. Restart Home Assistant
 
 ### Manual Installation
 
-1. Clone this repository
-2. Install Python dependencies: `pip install -r requirements.txt`
-3. Copy configuration templates and modify for your setup
-4. Run: `python main.py`
+1. Download the latest release
+2. Copy the `cbus_lights` folder to your `custom_components` directory
+3. Restart Home Assistant
 
-## Troubleshooting
+## Configuration
 
-### Common Issues
+1. Go to **Settings** → **Devices & Services**
+2. Click **"Add Integration"**
+3. Search for **"C-Bus Lights"**
+4. Configure:
+   - **C-Bus Host**: IP address of your C-Bus CNI (e.g., `192.168.1.100`)
+   - **C-Bus Port**: Port number (default: `20023`)
+   - **MQTT Topic**: Base MQTT topic (default: `cbus`)
 
-1. **Lights show wrong state**
-   - Check `monitoring.enabled` is `true`
-   - Verify `poll_interval` is appropriate
-   - Check C-Bus interface connection
+## MQTT Topics
 
-2. **Devices not discovered**
-   - Verify MQTT discovery is enabled
-   - Check MQTT broker connection
-   - Ensure device configuration is correct
+The integration uses the following MQTT topic structure:
 
-3. **Connection issues**
-   - Check C-Bus interface settings
-   - Verify network connectivity
-   - Review logs for error messages
+- **State**: `cbus/light/{light_id}/state`
+- **Commands**: `cbus/light/{light_id}/set`
+- **Button Press**: `cbus/button/{light_id}/press`
 
-### Debug Mode
+## Example Usage
 
-```bash
-# Enable debug logging
-python main.py --config config/config.yaml --debug
+When you press a physical C-Bus button, the integration will:
+1. Detect the button press via MQTT
+2. Query the current light state
+3. Return the state information (on/off, brightness)
+4. Update Home Assistant entities
 
-# Or modify config.yaml
-logging:
-  level: DEBUG
-```
+## Requirements
 
-## Contributing
+- Home Assistant 2023.1.0 or later
+- MQTT broker configured in Home Assistant
+- C-Bus CNI (network interface) connected to your C-Bus system
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
+## Support
+
+- [Issues](https://github.com/haroldjcarp/MQTTWD/issues)
+- [Discussions](https://github.com/haroldjcarp/MQTTWD/discussions)
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License. 

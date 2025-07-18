@@ -1,0 +1,12 @@
+{
+  "domain": "cbus_lights",
+  "name": "C-Bus Lights",
+  "version": "1.0.0",
+  "documentation": "https://github.com/haroldjcarp/MQTTWD",
+  "issue_tracker": "https://github.com/haroldjcarp/MQTTWD/issues",
+  "dependencies": ["mqtt"],
+  "codeowners": ["@haroldjcarp"],
+  "requirements": ["paho-mqtt>=1.6.1"],
+  "config_flow": true,
+  "iot_class": "local_push"
+} 
