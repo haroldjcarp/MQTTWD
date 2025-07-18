@@ -1,8 +1,8 @@
 # C-Bus MQTT Bridge for Home Assistant
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
-[![GitHub release](https://img.shields.io/github/release/yourusername/ha-cbusmqtt.svg)](https://github.com/yourusername/ha-cbusmqtt/releases)
-[![License](https://img.shields.io/github/license/yourusername/ha-cbusmqtt.svg)](LICENSE)
+[![GitHub release](https://img.shields.io/github/release/haroldjcarp/MQTTWD.svg)](https://github.com/haroldjcarp/MQTTWD/releases)
+[![License](https://img.shields.io/github/license/haroldjcarp/MQTTWD.svg)](LICENSE)
 
 An improved C-Bus to MQTT bridge for Home Assistant with accurate state tracking and GUI configuration.
 
@@ -23,7 +23,7 @@ An improved C-Bus to MQTT bridge for Home Assistant with accurate state tracking
 2. Click on "Integrations"
 3. Click the three dots in the top right corner
 4. Select "Custom repositories"
-5. Add this repository URL: `https://github.com/yourusername/ha-cbusmqtt`
+5. Add this repository URL: `https://github.com/haroldjcarp/MQTTWD`
 6. Select "Integration" as category
 7. Click "Add"
 8. Find "C-Bus MQTT Bridge" in the list and click "Install"
@@ -31,7 +31,7 @@ An improved C-Bus to MQTT bridge for Home Assistant with accurate state tracking
 
 ### Manual Installation
 
-1. Download the latest release from the [releases page](https://github.com/yourusername/ha-cbusmqtt/releases)
+1. Download the latest release from the [releases page](https://github.com/haroldjcarp/MQTTWD/releases)
 2. Extract the contents to your `custom_components` directory
 3. Restart Home Assistant
 
@@ -140,8 +140,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- [Issues](https://github.com/yourusername/ha-cbusmqtt/issues)
-- [Discussions](https://github.com/yourusername/ha-cbusmqtt/discussions)
+- [Issues](https://github.com/haroldjcarp/MQTTWD/issues)
+- [Discussions](https://github.com/haroldjcarp/MQTTWD/discussions)
 
 ## Acknowledgments
 

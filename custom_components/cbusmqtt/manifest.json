@@ -2,10 +2,10 @@
   "domain": "cbusmqtt",
   "name": "C-Bus MQTT Bridge",
   "version": "1.0.0",
-  "documentation": "https://github.com/yourusername/ha-cbusmqtt",
-  "issue_tracker": "https://github.com/yourusername/ha-cbusmqtt/issues",
+  "documentation": "https://github.com/haroldjcarp/MQTTWD",
+  "issue_tracker": "https://github.com/haroldjcarp/MQTTWD/issues",
   "dependencies": [],
-  "codeowners": ["@yourusername"],
+  "codeowners": ["@haroldjcarp"],
   "requirements": [
     "paho-mqtt>=1.6.1",
     "pyserial>=3.5",
