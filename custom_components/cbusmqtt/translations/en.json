@@ -1,0 +1,122 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "C-Bus MQTT Bridge Setup",
+        "description": "Set up your C-Bus MQTT Bridge integration",
+        "data": {
+          "interface_type": "Interface Type",
+          "name": "Name"
+        }
+      },
+      "tcp": {
+        "title": "TCP/CNI Configuration",
+        "description": "Configure TCP connection to C-Bus CNI",
+        "data": {
+          "host": "Host",
+          "port": "Port",
+          "network": "Network",
+          "application": "Application"
+        }
+      },
+      "serial": {
+        "title": "Serial Configuration",
+        "description": "Configure serial connection to C-Bus",
+        "data": {
+          "serial_port": "Serial Port",
+          "network": "Network",
+          "application": "Application"
+        }
+      },
+      "pci": {
+        "title": "PCI Configuration",
+        "description": "Configure PCI connection to C-Bus",
+        "data": {
+          "serial_port": "Serial Port",
+          "network": "Network",
+          "application": "Application"
+        }
+      },
+      "advanced": {
+        "title": "Advanced Options",
+        "description": "Configure advanced monitoring options",
+        "data": {
+          "monitoring_enabled": "Enable Monitoring",
+          "poll_interval": "Poll Interval (seconds)",
+          "timeout": "Timeout (seconds)",
+          "max_retries": "Max Retries"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to C-Bus",
+      "unknown": "Unexpected error occurred"
+    },
+    "abort": {
+      "already_configured": "C-Bus MQTT Bridge is already configured",
+      "unknown_interface": "Unknown interface type"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "C-Bus MQTT Bridge Options",
+        "description": "Configure monitoring options",
+        "data": {
+          "monitoring_enabled": "Enable Monitoring",
+          "poll_interval": "Poll Interval (seconds)",
+          "timeout": "Timeout (seconds)",
+          "max_retries": "Max Retries"
+        }
+      }
+    }
+  },
+  "services": {
+    "sync_device": {
+      "name": "Sync Device",
+      "description": "Sync a specific C-Bus device state",
+      "fields": {
+        "group": {
+          "name": "Group",
+          "description": "C-Bus group number"
+        }
+      }
+    },
+    "refresh_devices": {
+      "name": "Refresh Devices",
+      "description": "Refresh all C-Bus devices"
+    },
+    "set_level": {
+      "name": "Set Level",
+      "description": "Set a C-Bus device to a specific level",
+      "fields": {
+        "group": {
+          "name": "Group",
+          "description": "C-Bus group number"
+        },
+        "level": {
+          "name": "Level",
+          "description": "Level to set (0-255)"
+        }
+      }
+    },
+    "ramp_to_level": {
+      "name": "Ramp to Level",
+      "description": "Ramp a C-Bus device to a specific level over time",
+      "fields": {
+        "group": {
+          "name": "Group",
+          "description": "C-Bus group number"
+        },
+        "level": {
+          "name": "Level",
+          "description": "Level to ramp to (0-255)"
+        },
+        "ramp_time": {
+          "name": "Ramp Time",
+          "description": "Time to ramp in seconds"
+        }
+      }
+    }
+  }
+} 

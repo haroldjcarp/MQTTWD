@@ -1,0 +1,139 @@
+# CBus Device Configuration
+# Define your C-Bus devices here
+
+# Device Templates
+# Templates allow you to define common device configurations
+templates:
+  - name: "dimmable_light"
+    type: light
+    dimmable: true
+    fade_time: 2
+    icon: "mdi:lightbulb"
+    
+  - name: "non_dimmable_light"
+    type: light
+    dimmable: false
+    icon: "mdi:lightbulb-outline"
+    
+  - name: "ceiling_fan"
+    type: fan
+    dimmable: true
+    icon: "mdi:ceiling-fan"
+    
+  - name: "exhaust_fan"
+    type: fan
+    dimmable: false
+    icon: "mdi:fan"
+    
+  - name: "switch"
+    type: switch
+    dimmable: false
+    icon: "mdi:light-switch"
+
+# Device Definitions
+devices:
+  # Living Room
+  - group: 1
+    name: "Living Room Main Light"
+    type: light
+    area: "Living Room"
+    dimmable: true
+    template: "dimmable_light"
+    
+  - group: 2
+    name: "Living Room Lamp"
+    type: light
+    area: "Living Room"
+    dimmable: true
+    
+  # Kitchen
+  - group: 10
+    name: "Kitchen Downlights"
+    type: light
+    area: "Kitchen"
+    dimmable: true
+    icon: "mdi:ceiling-light"
+    
+  - group: 11
+    name: "Kitchen Under Cabinet"
+    type: light
+    area: "Kitchen"
+    dimmable: true
+    icon: "mdi:led-strip"
+    
+  - group: 12
+    name: "Kitchen Exhaust Fan"
+    type: fan
+    area: "Kitchen"
+    dimmable: false
+    template: "exhaust_fan"
+    
+  # Bedroom
+  - group: 20
+    name: "Bedroom Ceiling Light"
+    type: light
+    area: "Bedroom"
+    dimmable: true
+    template: "dimmable_light"
+    
+  - group: 21
+    name: "Bedroom Bedside Light"
+    type: light
+    area: "Bedroom"
+    dimmable: true
+    
+  - group: 22
+    name: "Bedroom Ceiling Fan"
+    type: fan
+    area: "Bedroom"
+    dimmable: true
+    template: "ceiling_fan"
+    
+  # Bathroom
+  - group: 30
+    name: "Bathroom Main Light"
+    type: light
+    area: "Bathroom"
+    dimmable: false
+    template: "non_dimmable_light"
+    
+  - group: 31
+    name: "Bathroom Exhaust Fan"
+    type: fan
+    area: "Bathroom"
+    dimmable: false
+    template: "exhaust_fan"
+    
+  # Outdoor
+  - group: 40
+    name: "Front Porch Light"
+    type: light
+    area: "Outdoor"
+    dimmable: false
+    icon: "mdi:outdoor-lamp"
+    
+  - group: 41
+    name: "Backyard Light"
+    type: light
+    area: "Outdoor"
+    dimmable: false
+    icon: "mdi:outdoor-lamp"
+    
+  - group: 42
+    name: "Garage Light"
+    type: light
+    area: "Garage"
+    dimmable: false
+    
+  # Switches and Controls
+  - group: 50
+    name: "Pool Pump"
+    type: switch
+    area: "Pool"
+    icon: "mdi:water-pump"
+    
+  - group: 51
+    name: "Garden Irrigation"
+    type: switch
+    area: "Garden"
+    icon: "mdi:water" 

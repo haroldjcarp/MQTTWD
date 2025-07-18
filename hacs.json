@@ -1,0 +1,10 @@
+{
+  "name": "C-Bus MQTT Bridge",
+  "content_in_root": false,
+  "filename": "cbusmqtt",
+  "country": ["AU", "NZ", "SG", "MY", "TH", "VN", "ID", "PH"],
+  "domains": ["light", "switch", "fan"],
+  "homeassistant": "2023.1.0",
+  "render_readme": true,
+  "iot_class": "Local Push"
+} 

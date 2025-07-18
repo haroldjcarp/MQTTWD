@@ -1,0 +1,56 @@
+# CBus MQTT Bridge Configuration
+# This is the main configuration file for the CBus MQTT Bridge
+
+# C-Bus Configuration
+cbus:
+  # Interface type: tcp, serial, or pci
+  interface: tcp
+  
+  # For TCP/CNI interfaces
+  host: 192.168.1.100
+  port: 10001
+  
+  # For serial interfaces
+  # serial_port: /dev/ttyUSB0
+  # baudrate: 9600
+  
+  # For PCI interfaces
+  # pci_device: /dev/ttyUSB0
+  
+  # Network configuration
+  network: 254           # C-Bus network number (default: 254)
+  application: 56        # Lighting application (56 = 0x38)
+  
+  # State monitoring configuration
+  monitoring:
+    enabled: true
+    poll_interval: 30    # Poll devices every 30 seconds
+    max_retries: 3
+    timeout: 5
+    
+# MQTT Configuration
+mqtt:
+  broker: localhost
+  port: 1883
+  username: homeassistant
+  password: your_password
+  
+  # MQTT topics
+  topics:
+    command: cbus/command
+    state: cbus/state
+    
+  # Connection settings
+  keepalive: 60
+  reconnect_delay: 5
+  
+# Home Assistant Discovery
+discovery:
+  enabled: true
+  prefix: homeassistant
+  auto_discovery: true
+  
+# Logging Configuration
+logging:
+  level: INFO
+  file: /var/log/cbusmqtt.log 

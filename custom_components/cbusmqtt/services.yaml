@@ -1,0 +1,74 @@
+sync_device:
+  name: Sync Device
+  description: Sync a specific C-Bus device state
+  fields:
+    group:
+      name: Group
+      description: C-Bus group number
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 255
+          mode: box
+
+refresh_devices:
+  name: Refresh Devices
+  description: Refresh all C-Bus devices
+  fields: {}
+
+set_level:
+  name: Set Level
+  description: Set a C-Bus device to a specific level
+  fields:
+    group:
+      name: Group
+      description: C-Bus group number
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 255
+          mode: box
+    level:
+      name: Level
+      description: Level to set (0-255)
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 255
+          mode: box
+
+ramp_to_level:
+  name: Ramp to Level
+  description: Ramp a C-Bus device to a specific level over time
+  fields:
+    group:
+      name: Group
+      description: C-Bus group number
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 255
+          mode: box
+    level:
+      name: Level
+      description: Level to ramp to (0-255)
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 255
+          mode: box
+    ramp_time:
+      name: Ramp Time
+      description: Time to ramp in seconds
+      required: false
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 300
+          mode: box 

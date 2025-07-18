@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  cbusmqtt:
+    build: .
+    container_name: cbusmqtt
+    restart: unless-stopped
+    
+    # Network configuration
+    network_mode: host
+    
+    # Environment variables
+    environment:
+      - PYTHONPATH=/app
+      - CONFIG_PATH=/config/config.yaml
+      - TZ=UTC
+      
+    # Volume mounts
+    volumes:
+      - ./config:/config:ro
+      - ./logs:/var/log:rw
+      
+    # Device access (uncomment if using serial/PCI)
+    # devices:
+    #   - /dev/ttyUSB0:/dev/ttyUSB0
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import asyncio; import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+      
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        
+    # Resource limits
+    mem_limit: 512m
+    cpus: 0.5
+    
+  # Optional: MQTT broker for development
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config:ro
+      - ./mosquitto/data:/mosquitto/data:rw
+      - ./mosquitto/logs:/mosquitto/log:rw
+    profiles:
+      - development 

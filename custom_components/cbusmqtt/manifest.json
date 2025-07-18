@@ -1,0 +1,18 @@
+{
+  "domain": "cbusmqtt",
+  "name": "C-Bus MQTT Bridge",
+  "version": "1.0.0",
+  "documentation": "https://github.com/yourusername/ha-cbusmqtt",
+  "issue_tracker": "https://github.com/yourusername/ha-cbusmqtt/issues",
+  "dependencies": [],
+  "codeowners": ["@yourusername"],
+  "requirements": [
+    "paho-mqtt>=1.6.1",
+    "pyserial>=3.5",
+    "asyncio-mqtt>=0.13.0"
+  ],
+  "config_flow": true,
+  "after_dependencies": ["mqtt"],
+  "iot_class": "local_push",
+  "integration_type": "hub"
+} 
