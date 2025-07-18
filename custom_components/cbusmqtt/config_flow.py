@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any
 
@@ -12,6 +13,8 @@ from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import config_validation as cv
+from homeassistant.core import callback
 
 from .const import (CONF_APPLICATION, CONF_INTERFACE_TYPE, CONF_MAX_RETRIES,
                     CONF_MONITORING_ENABLED, CONF_NETWORK, CONF_POLL_INTERVAL,
@@ -101,12 +104,12 @@ async def validate_cbus_connection(
         # Create a temporary interface to test connection
         interface = CBusInterface(data)
 
-        # Try to initialize and connect
-        await interface.initialize()
-        await interface.connect()
+        # Try to initialize and connect with timeout
+        await asyncio.wait_for(interface.initialize(), timeout=10)
+        await asyncio.wait_for(interface.connect(), timeout=10)
 
-        # Test basic communication
-        result = await interface.ping()
+        # Test basic communication with timeout
+        result = await asyncio.wait_for(interface.ping(), timeout=10)
 
         # Clean up
         await interface.disconnect()
@@ -116,6 +119,9 @@ async def validate_cbus_connection(
 
         return {"title": data[CONF_NAME]}
 
+    except asyncio.TimeoutError:
+        _LOGGER.error("Timeout validating C-Bus connection")
+        raise CannotConnect("Connection timeout - check your C-Bus interface settings")
     except Exception as exc:
         _LOGGER.error("Error validating C-Bus connection: %s", exc)
         raise CannotConnect(f"Cannot connect to C-Bus: {exc}") from exc
@@ -126,6 +132,12 @@ class CBusMQTTConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry):
+        """Get the options flow for this handler."""
+        return CBusMQTTOptionsFlow(config_entry)
 
     def __init__(self) -> None:
         """Initialize the config flow."""
@@ -279,11 +291,6 @@ class CBusMQTTConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             title=self.name,
             data=config_data,
         )
-
-    @staticmethod
-    def async_get_options_flow(config_entry):
-        """Get the options flow for this handler."""
-        return CBusMQTTOptionsFlow(config_entry)
 
 
 class CBusMQTTOptionsFlow(config_entries.OptionsFlow):
