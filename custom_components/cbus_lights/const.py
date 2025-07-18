@@ -21,4 +21,4 @@ CBUS_LIGHTING_GROUP = 56
 
 # Device classes
 DEVICE_CLASS_LIGHT = "light"
-DEVICE_CLASS_SWITCH = "switch" 
+DEVICE_CLASS_SWITCH = "switch"

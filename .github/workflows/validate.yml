@@ -30,11 +30,11 @@ jobs:
           pip install flake8 black isort
       - name: Lint with flake8
         run: |
-          flake8 custom_components/cbusmqtt --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 custom_components/cbusmqtt --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          flake8 custom_components/cbus_lights --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 custom_components/cbus_lights --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       - name: Check formatting with black
         run: |
-          black --check custom_components/cbusmqtt
+          black --check custom_components/cbus_lights
       - name: Check imports with isort
         run: |
-          isort --check-only custom_components/cbusmqtt 
+          isort --check-only custom_components/cbus_lights 

@@ -5,7 +5,7 @@ C-Bus Interface for communication with C-Bus PCI/CNI devices
 import asyncio
 import logging
 import socket
-from typing import Optional, Dict, Any, Callable
+from typing import Optional, Dict, Any, Callable, List
 from dataclasses import dataclass
 from enum import Enum
 
@@ -392,3 +392,219 @@ class CBusInterface:
             return True
         except Exception:
             return False 
+
+    async def discover_devices(self, start_group: int = 1, end_group: int = 255) -> Dict[int, Dict[str, Any]]:
+        """Discover devices on the C-Bus network by scanning groups and querying labels."""
+        discovered = {}
+        
+        self.logger.info(f"Starting device discovery scan from group {start_group} to {end_group}")
+        
+        for group in range(start_group, end_group + 1):
+            device_info = await self.query_device_info(group)
+            if device_info:
+                discovered[group] = device_info
+                self.logger.info(f"Discovered device: {device_info['name']} (Group {group})")
+        
+        self.logger.info(f"Device discovery complete. Found {len(discovered)} devices.")
+        return discovered
+    
+    async def query_device_info(self, group: int) -> Optional[Dict[str, Any]]:
+        """Query comprehensive device information including name/label."""
+        try:
+            # First check if device is responsive
+            level = await self.get_group_level(group)
+            if level is None:
+                return None
+            
+            # Query device label/name
+            device_name = await self.get_device_label(group)
+            if not device_name:
+                device_name = f"C-Bus Device {group}"
+            
+            # Get device type (basic heuristic based on response patterns)
+            device_type = await self.detect_device_type(group)
+            
+            # Check if device is dimmable
+            is_dimmable = await self.is_device_dimmable(group)
+            
+            return {
+                'group': group,
+                'name': device_name,
+                'type': device_type,
+                'dimmable': is_dimmable,
+                'current_level': level,
+                'discovered': True,
+                'last_seen': asyncio.get_event_loop().time()
+            }
+            
+        except Exception as e:
+            self.logger.debug(f"Error querying device info for group {group}: {e}")
+            return None
+    
+    async def get_device_label(self, group: int) -> Optional[str]:
+        """Query device label/name from C-Bus system."""
+        try:
+            # Try DLT (Dynamic Labelling Technology) query first
+            label = await self.query_dlt_label(group)
+            if label:
+                return label.strip()
+            
+            # Try alternative label query methods
+            label = await self.query_group_label(group)
+            if label:
+                return label.strip()
+            
+            return None
+            
+        except Exception as e:
+            self.logger.debug(f"Error getting device label for group {group}: {e}")
+            return None
+    
+    async def query_dlt_label(self, group: int) -> Optional[str]:
+        """Query DLT (Dynamic Labelling Technology) label for a device."""
+        try:
+            # DLT label query command - varies by implementation
+            # This is a common pattern for querying device labels
+            command = f"get {self.application:02X} {group:02X} label"
+            response = await self.send_command_with_response(command)
+            
+            if response and 'label' in response:
+                return response['label']
+            
+            return None
+            
+        except Exception as e:
+            self.logger.debug(f"DLT label query failed for group {group}: {e}")
+            return None
+    
+    async def query_group_label(self, group: int) -> Optional[str]:
+        """Query group label using alternative method."""
+        try:
+            # Alternative label query - some systems store labels differently
+            command = f"info {self.application:02X} {group:02X}"
+            response = await self.send_command_with_response(command)
+            
+            if response and 'name' in response:
+                return response['name']
+            
+            return None
+            
+        except Exception as e:
+            self.logger.debug(f"Group label query failed for group {group}: {e}")
+            return None
+    
+    async def detect_device_type(self, group: int) -> str:
+        """Detect device type based on response patterns."""
+        try:
+            # Try to determine device type by testing different commands
+            # This is heuristic-based since C-Bus doesn't always provide explicit type info
+            
+            # Test for dimming capability
+            if await self.is_device_dimmable(group):
+                # Could be light or fan
+                # Additional heuristics could be added here
+                return "light"
+            else:
+                return "switch"
+                
+        except Exception as e:
+            self.logger.debug(f"Device type detection failed for group {group}: {e}")
+            return "unknown"
+    
+    async def is_device_dimmable(self, group: int) -> bool:
+        """Check if a device supports dimming."""
+        try:
+            # Try to set a mid-range level and see if it responds appropriately
+            original_level = await self.get_group_level(group)
+            if original_level is None:
+                return False
+            
+            # Test dimming capability
+            test_level = 128  # Mid-range
+            await self.set_group_level(group, test_level)
+            await asyncio.sleep(0.2)  # Wait for response
+            
+            new_level = await self.get_group_level(group)
+            
+            # Restore original level
+            await self.set_group_level(group, original_level)
+            
+            # If level changed to something close to our test level, it's dimmable
+            return new_level is not None and abs(new_level - test_level) < 20
+            
+        except Exception as e:
+            self.logger.debug(f"Dimming test failed for group {group}: {e}")
+            return False
+    
+    async def send_command_with_response(self, command: str, timeout: float = 2.0) -> Optional[Dict[str, Any]]:
+        """Send a command and wait for a structured response."""
+        try:
+            # Queue the command
+            await self.send_command(command)
+            
+            # Wait for response with timeout
+            response = await asyncio.wait_for(
+                self.response_queue.get(), 
+                timeout=timeout
+            )
+            
+            return self.parse_response(response)
+            
+        except asyncio.TimeoutError:
+            self.logger.debug(f"Command response timeout: {command}")
+            return None
+        except Exception as e:
+            self.logger.debug(f"Command response error: {e}")
+            return None
+    
+    def parse_response(self, response: str) -> Dict[str, Any]:
+        """Parse C-Bus response into structured data."""
+        try:
+            # Basic response parsing - this would need to be expanded
+            # based on actual C-Bus response formats
+            result = {}
+            
+            # Example parsing for common response patterns
+            if 'level' in response.lower():
+                # Extract level information
+                import re
+                level_match = re.search(r'level[:\s]+(\d+)', response.lower())
+                if level_match:
+                    result['level'] = int(level_match.group(1))
+            
+            if 'label' in response.lower():
+                # Extract label information
+                import re
+                label_match = re.search(r'label[:\s]+(.+)', response.lower())
+                if label_match:
+                    result['label'] = label_match.group(1).strip()
+            
+            return result
+            
+        except Exception as e:
+            self.logger.debug(f"Response parsing error: {e}")
+            return {}
+    
+    async def scan_active_groups(self) -> List[int]:
+        """Scan for groups that are currently active/responsive."""
+        active_groups = []
+        
+        # Use a more targeted scan - test common group ranges
+        test_ranges = [
+            (1, 50),      # Common lighting groups
+            (100, 150),   # Extended lighting
+            (200, 255),   # Special functions
+        ]
+        
+        for start, end in test_ranges:
+            for group in range(start, end + 1):
+                try:
+                    level = await self.get_group_level(group)
+                    if level is not None:
+                        active_groups.append(group)
+                        # Small delay to avoid overwhelming the system
+                        await asyncio.sleep(0.1)
+                except Exception:
+                    continue
+        
+        return active_groups 

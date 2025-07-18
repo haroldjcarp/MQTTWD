@@ -1,1 +1,1 @@
-"""C-Bus communication package.""" 
+"""C-Bus communication package."""

@@ -1,0 +1,44 @@
+discover_devices:
+  name: "Discover C-Bus Devices"
+  description: "Scan the C-Bus network for devices and update the device list"
+  fields:
+    start_group:
+      name: "Start Group"
+      description: "Starting group number for discovery scan"
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 255
+          mode: box
+    end_group:
+      name: "End Group"
+      description: "Ending group number for discovery scan"
+      default: 50
+      selector:
+        number:
+          min: 1
+          max: 255
+          mode: box
+
+refresh_device_names:
+  name: "Refresh Device Names"
+  description: "Query C-Bus system for updated device names/labels"
+
+query_device_info:
+  name: "Query Device Info"
+  description: "Get detailed information about a specific C-Bus device"
+  fields:
+    group:
+      name: "Group Number"
+      description: "C-Bus group number to query"
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 255
+          mode: box
+
+scan_active_groups:
+  name: "Scan Active Groups"
+  description: "Quickly scan for active/responsive C-Bus groups" 

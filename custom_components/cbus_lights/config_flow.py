@@ -1,14 +1,14 @@
 """Config flow for C-Bus Lights integration."""
+
 import logging
 from typing import Any
 
 import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.data_entry_flow import FlowResult
 
-from .const import DOMAIN, CONF_MQTT_TOPIC, DEFAULT_CBUS_PORT, DEFAULT_MQTT_TOPIC
+from .const import CONF_MQTT_TOPIC, DEFAULT_CBUS_PORT, DEFAULT_MQTT_TOPIC, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,4 +50,4 @@ class CBusLightsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=DATA_SCHEMA,
             errors=errors,
-        ) 
+        )

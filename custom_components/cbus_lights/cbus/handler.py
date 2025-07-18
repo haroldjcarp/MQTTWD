@@ -1,4 +1,5 @@
 """C-Bus communication handler."""
+
 import asyncio
 import logging
 from typing import Any, Dict, Optional
@@ -61,7 +62,7 @@ class CBusHandler:
             command = f"lighting off {group_address}"
         else:
             command = f"lighting ramp {group_address} {level}"
-        
+
         return await self.send_command(command)
 
     async def get_light_level(self, group_address: int) -> Optional[int]:
@@ -72,15 +73,15 @@ class CBusHandler:
         try:
             command = f"get lighting {group_address}"
             await self.send_command(command)
-            
+
             # Read response (simplified - in real implementation you'd parse the response)
             response = await self._reader.readline()
             _LOGGER.debug("C-Bus response: %s", response.decode().strip())
-            
+
             # For now, return a placeholder value
             # In real implementation, you'd parse the actual response
             return 255 if response else 0
-            
+
         except Exception as err:
             _LOGGER.error("Failed to get light level: %s", err)
             return None
@@ -88,4 +89,4 @@ class CBusHandler:
     @property
     def connected(self) -> bool:
         """Return connection status."""
-        return self._connected 
+        return self._connected

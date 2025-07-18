@@ -255,25 +255,158 @@ class DeviceManager:
         """Setup automatic device discovery."""
         self.logger.info("Setting up automatic device discovery")
         
-        # TODO: Implement automatic discovery from C-Bus network
-        # This would scan the network for devices and create basic configurations
+        # Initialize CBUS interface if not already done
+        if not hasattr(self, 'cbus_interface'):
+            from cbus.interface import CBusInterface
+            self.cbus_interface = CBusInterface(self.config)
+            await self.cbus_interface.initialize()
+            await self.cbus_interface.connect()
         
+        # Perform device discovery
+        await self.perform_device_discovery()
+        
+    async def perform_device_discovery(self):
+        """Perform comprehensive device discovery from CBUS system."""
+        self.logger.info("Starting comprehensive device discovery")
+        
+        try:
+            # Scan for active groups first (faster)
+            active_groups = await self.cbus_interface.scan_active_groups()
+            self.logger.info(f"Found {len(active_groups)} active groups: {active_groups}")
+            
+            # Query detailed info for each active group
+            for group in active_groups:
+                device_info = await self.cbus_interface.query_device_info(group)
+                if device_info:
+                    device = self.create_device_from_discovery(device_info)
+                    self.discovered_devices[group] = device
+                    self.logger.info(f"Discovered: {device.name} (Group {group}, Type: {device.device_type.value})")
+                    
+            # If no devices found, try a more comprehensive scan
+            if not self.discovered_devices:
+                self.logger.info("No devices found in quick scan, performing full discovery")
+                await self.full_device_discovery()
+                
+        except Exception as e:
+            self.logger.error(f"Error during device discovery: {e}")
+            # Fall back to basic discovery
+            await self.fallback_discovery()
+    
+    async def full_device_discovery(self):
+        """Perform full device discovery scan."""
+        try:
+            discovered_info = await self.cbus_interface.discover_devices(1, 100)  # Scan common range
+            
+            for group, device_info in discovered_info.items():
+                device = self.create_device_from_discovery(device_info)
+                self.discovered_devices[group] = device
+                self.logger.info(f"Full scan discovered: {device.name} (Group {group})")
+                
+        except Exception as e:
+            self.logger.error(f"Error during full device discovery: {e}")
+    
+    async def fallback_discovery(self):
+        """Fallback discovery method when CBUS queries fail."""
+        self.logger.info("Using fallback discovery method")
+        
+        # Create basic devices for common groups that might exist
+        common_groups = [1, 2, 3, 4, 5, 10, 11, 12, 20, 21, 22, 30]
+        
+        for group in common_groups:
+            device = Device(
+                group=group,
+                name=f"C-Bus Device {group}",
+                device_type=DeviceType.LIGHT,
+                area="Discovered",
+                dimmable=True
+            )
+            self.discovered_devices[group] = device
+    
+    def create_device_from_discovery(self, device_info: Dict[str, Any]) -> Device:
+        """Create a Device object from discovery information."""
+        # Map device type string to enum
+        device_type_map = {
+            'light': DeviceType.LIGHT,
+            'switch': DeviceType.SWITCH,
+            'fan': DeviceType.FAN,
+            'sensor': DeviceType.SENSOR,
+            'unknown': DeviceType.LIGHT  # Default to light
+        }
+        
+        device_type = device_type_map.get(device_info.get('type', 'light'), DeviceType.LIGHT)
+        
+        # Create device with discovered information
+        device = Device(
+            group=device_info['group'],
+            name=device_info['name'],
+            device_type=device_type,
+            area=device_info.get('area', 'Discovered'),
+            dimmable=device_info.get('dimmable', False),
+            custom_attributes={
+                'discovered': True,
+                'last_seen': device_info.get('last_seen'),
+                'current_level': device_info.get('current_level'),
+                'discovery_method': 'cbus_query'
+            }
+        )
+        
+        return device
+        
+    async def refresh_discovery(self):
+        """Refresh device discovery - useful for finding new devices."""
+        self.logger.info("Refreshing device discovery")
+        
+        # Clear existing discovered devices
+        old_count = len(self.discovered_devices)
+        self.discovered_devices.clear()
+        
+        # Perform new discovery
+        await self.perform_device_discovery()
+        
+        new_count = len(self.discovered_devices)
+        self.logger.info(f"Discovery refresh complete: {old_count} -> {new_count} devices")
+        
+        return new_count
+    
+    async def query_device_name(self, group: int) -> Optional[str]:
+        """Query device name from CBUS system."""
+        try:
+            if hasattr(self, 'cbus_interface'):
+                return await self.cbus_interface.get_device_label(group)
+            return None
+        except Exception as e:
+            self.logger.error(f"Error querying device name for group {group}: {e}")
+            return None
+
     async def discover_device(self, group: int, device_type: DeviceType = DeviceType.LIGHT) -> Optional[Device]:
         """Discover and add a new device."""
         if group in self.devices:
             return self.devices[group]
             
-        # Create basic device configuration
+        # Try to get real device info from CBUS
+        try:
+            if hasattr(self, 'cbus_interface'):
+                device_info = await self.cbus_interface.query_device_info(group)
+                if device_info:
+                    device = self.create_device_from_discovery(device_info)
+                    self.discovered_devices[group] = device
+                    self.logger.info(f"Discovered new device: {device.name} (group {group})")
+                    return device
+        except Exception as e:
+            self.logger.debug(f"CBUS query failed for group {group}: {e}")
+        
+        # Fall back to basic device creation
         device = Device(
             group=group,
             name=f"C-Bus Device {group}",
             device_type=device_type,
             area="Discovered",
-            dimmable=(device_type in [DeviceType.LIGHT, DeviceType.FAN])
+            dimmable=(device_type in [DeviceType.LIGHT, DeviceType.FAN]),
+            custom_attributes={'discovery_method': 'fallback'}
         )
         
         self.discovered_devices[group] = device
-        self.logger.info(f"Discovered new device: {device.name} (group {group})")
+        self.logger.info(f"Created fallback device: {device.name} (group {group})")
         
         return device
         
