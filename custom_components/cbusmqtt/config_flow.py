@@ -141,23 +141,25 @@ async def validate_cbus_connection(
         raise CannotConnect(f"Cannot connect to C-Bus: {exc}") from exc
 
 
-class CBusMQTTConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+@config_entries.HANDLERS.register(DOMAIN)
+class CBusMQTTConfigFlow(config_entries.ConfigFlow):
     """Handle a config flow for C-Bus MQTT Bridge."""
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
+
+    def __init__(self) -> None:
+        """Initialize the config flow."""
+        super().__init__()
+        self.interface_type: str | None = None
+        self.name: str | None = None
+        self.connection_data: dict[str, Any] = {}
 
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
         """Get the options flow for this handler."""
         return CBusMQTTOptionsFlow(config_entry)
-
-    def __init__(self) -> None:
-        """Initialize the config flow."""
-        self.interface_type: str | None = None
-        self.name: str | None = None
-        self.connection_data: dict[str, Any] = {}
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
