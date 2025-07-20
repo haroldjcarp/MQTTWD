@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 import serial
-import serial.aio
+import serial_asyncio
 
 from config.config import Config
 
@@ -137,7 +137,7 @@ class CBusInterface:
         """Connect via serial."""
         try:
             # Create serial connection
-            serial_conn = serial.aio.Serial(
+            serial_conn = serial_asyncio.Serial(
                 port=self.serial_port,
                 baudrate=9600,
                 timeout=self.timeout
@@ -157,7 +157,7 @@ class CBusInterface:
         """Connect via PCI."""
         # For PCI, we use the same serial connection but with different parameters
         try:
-            serial_conn = serial.aio.Serial(
+            serial_conn = serial_asyncio.Serial(
                 port=self.config.get('cbus.pci_device', '/dev/ttyUSB0'),
                 baudrate=9600,
                 timeout=self.timeout

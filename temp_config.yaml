@@ -1,0 +1,27 @@
+cbus:
+  application: 56
+  host: 192.168.0.50
+  interface: tcp
+  monitoring:
+    enabled: true
+    max_retries: 3
+    timeout: 5
+  network: 254
+  port: 10001
+discovery:
+  auto_discovery: true
+  enabled: true
+  prefix: homeassistant
+logging:
+  file: /var/log/cbusmqtt.log
+  level: INFO
+mqtt:
+  broker: core-mosquitto
+  keepalive: 60
+  password: pai
+  port: 1883
+  reconnect_delay: 5
+  topics:
+    command: cbus/command
+    state: cbus/state
+  username: pai
