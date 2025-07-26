@@ -45,22 +45,23 @@ async def async_setup_entry(
     config = hass.data[DOMAIN][entry.entry_id]
 
     # Create MQTT-based light discovery manager
-    manager = CBusLightDiscoveryManager(hass, config)
+    manager = CBusLightDiscoveryManager(hass, config, async_add_entities)
     
     # Subscribe to discovery topics to find lights automatically
     await manager.async_setup_discovery()
     
-    # Request current state of all lights (like ha-cbus2mqtt does)
-    await manager.async_request_all_lights()
+    # Start comprehensive scanning for ALL lights (1-255)
+    await manager.async_comprehensive_scan()
 
 
 class CBusLightDiscoveryManager:
-    """Manages discovery of C-Bus lights via MQTT - following ha-cbus2mqtt patterns."""
+    """Manages discovery of C-Bus lights via MQTT - comprehensive scanning for all groups."""
     
-    def __init__(self, hass: HomeAssistant, config: dict):
+    def __init__(self, hass: HomeAssistant, config: dict, async_add_entities):
         """Initialize the discovery manager."""
         self.hass = hass
         self.config = config
+        self.async_add_entities = async_add_entities
         self.discovered_lights = {}
         self.network = CBUS_DEFAULT_NETWORK
         self.application = CBUS_DEFAULT_APPLICATION
@@ -70,6 +71,7 @@ class CBusLightDiscoveryManager:
         # Subscribe to all C-Bus read topics for automatic discovery
         # Following cmqttd pattern: cbus/read/network/app/group/state
         discovery_topic = f"cbus/read/{self.network}/{self.application}/+/state"
+        level_topic = f"cbus/read/{self.network}/{self.application}/+/level"
         
         await mqtt.async_subscribe(
             self.hass,
@@ -78,12 +80,19 @@ class CBusLightDiscoveryManager:
             1,
         )
         
-        _LOGGER.info(f"🔍 Subscribed to C-Bus light discovery: {discovery_topic}")
+        await mqtt.async_subscribe(
+            self.hass,
+            level_topic,
+            self._async_discover_light_callback,
+            1,
+        )
+        
+        _LOGGER.info(f"🔍 Subscribed to C-Bus light discovery: {discovery_topic}, {level_topic}")
         
     async def _async_discover_light_callback(self, msg):
         """Handle discovered light from MQTT topic."""
         try:
-            # Parse topic: cbus/read/254/56/123/state
+            # Parse topic: cbus/read/254/56/123/state or cbus/read/254/56/123/level
             topic_parts = msg.topic.split('/')
             if len(topic_parts) >= 6:
                 network = topic_parts[2]
@@ -104,27 +113,79 @@ class CBusLightDiscoveryManager:
                     )
                     
                     # Add to Home Assistant
-                    self.hass.async_create_task(
-                        self.hass.config_entries.async_add_devices([light])
-                    )
+                    self.async_add_entities([light])
                     
                     self.discovered_lights[light_id] = light
                     
         except Exception as e:
             _LOGGER.error(f"Error discovering light from {msg.topic}: {e}")
     
-    async def async_request_all_lights(self):
-        """Request all light states - following ha-cbus2mqtt getall pattern."""
+    async def async_comprehensive_scan(self):
+        """Perform comprehensive scan of ALL possible C-Bus groups (1-255)."""
+        _LOGGER.info("🚀 Starting comprehensive C-Bus light scan (Groups 1-255)")
+        
+        # 1. Request network tree
+        tree_topic = f"cbus/write/{self.network}///gettree"
+        await mqtt.async_publish(self.hass, tree_topic, "", 1)
+        _LOGGER.info(f"📤 Requested network tree: {tree_topic}")
+        
+        # 2. Request all lights in application
         getall_topic = MQTT_TOPIC_GETALL.format(self.network, self.application)
+        await mqtt.async_publish(self.hass, getall_topic, "", 1)
+        _LOGGER.info(f"📤 Requested all lights: {getall_topic}")
         
-        await mqtt.async_publish(
-            self.hass,
-            getall_topic,
-            "",  # Empty payload for getall request
-            1,
-        )
+        # 3. Systematically test all possible groups
+        # Split into batches to avoid overwhelming the system
+        test_ranges = [
+            (1, 50),      # Common residential lights
+            (51, 100),    # Extended residential/commercial
+            (101, 150),   # Large installations
+            (151, 200),   # Very large installations  
+            (201, 255),   # Maximum C-Bus range
+        ]
         
-        _LOGGER.info(f"📡 Requested all C-Bus lights: {getall_topic}")
+        import asyncio
+        
+        for start, end in test_ranges:
+            _LOGGER.info(f"🔍 Testing C-Bus groups {start}-{end}...")
+            
+            # Create tasks for batch processing
+            tasks = []
+            for group in range(start, end + 1):
+                task = self._async_test_group(group)
+                tasks.append(task)
+                
+            # Process batch with controlled concurrency
+            await asyncio.gather(*tasks, return_exceptions=True)
+            
+            # Small delay between batches
+            await asyncio.sleep(1)
+            
+        _LOGGER.info("✅ Comprehensive C-Bus scan completed")
+        
+        # Log summary
+        total_discovered = len(self.discovered_lights)
+        _LOGGER.info(f"📊 Total lights discovered: {total_discovered}")
+        
+        if total_discovered < 10:
+            _LOGGER.warning("⚠️ Only found a few lights. Many may be OFF and unresponsive.")
+            _LOGGER.info("💡 Try turning some lights ON physically to help discovery.")
+    
+    async def _async_test_group(self, group):
+        """Test a specific C-Bus group for existence."""
+        try:
+            # Send a status query to the group
+            query_topic = f"cbus/write/{self.network}/{self.application}/{group}/switch"
+            
+            # Use a gentle query method - just request status
+            await mqtt.async_publish(self.hass, query_topic, "STATUS", 1)
+            
+            # Small delay to allow response
+            import asyncio
+            await asyncio.sleep(0.05)  # 50ms
+            
+        except Exception as e:
+            _LOGGER.debug(f"Error testing group {group}: {e}")
 
 
 class CBusLight(LightEntity):
@@ -194,7 +255,7 @@ class CBusLight(LightEntity):
     def _async_state_callback(self, msg):
         """Handle state updates from MQTT."""
         try:
-            payload = msg.payload.strip().upper()
+            payload = msg.payload.decode().strip().upper()
             self._attr_is_on = payload == "ON"
             self.async_write_ha_state()
             _LOGGER.debug(f"State update - Group {self._group}: {payload}")
@@ -205,7 +266,7 @@ class CBusLight(LightEntity):
     def _async_level_callback(self, msg):
         """Handle level updates from MQTT."""
         try:
-            level = int(msg.payload)
+            level = int(msg.payload.decode().strip())
             # Convert C-Bus level (0-255) to HA brightness (0-255) 
             self._attr_brightness = level
             self._attr_is_on = level > 0
